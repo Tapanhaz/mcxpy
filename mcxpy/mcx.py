@@ -154,8 +154,8 @@ def mcx_circulars(from_date: Union[DateFormat, datetime, date] =(datetime.now()-
                   to_date: Union[DateFormat, datetime, date]=datetime.now()
                   ) -> pd.DataFrame:    
     try:
-        date1, __ = format_date(from_date)
-        date2, __ = format_date(to_date) 
+        date1 = format_date(from_date)
+        date2 = format_date(to_date) 
 
         data = {
             'CircularType':'ALL',
