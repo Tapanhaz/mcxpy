@@ -12,5 +12,5 @@ Below Functions will return data in pandas dataframe.. Any of the functions acce
 6. mcx_mostactiveoptions() -> Returns most active options.
 7. mcx_mostactivecontracts() -> Returns most active contracts.
 8. mcx_optionchain(commodity, expiry) -> Returns option chain of the given commodity of the given expiry.
-9. mcx_pcr(expirywise) -> Returns commoditywise pcr if expirywise is False. If not, returns pcr exiry wise.
+9. mcx_pcr(expirywise) -> Returns commoditywise pcr if expirywise is False. If not, returns pcr expiry wise.
 10. mcx_expiry(commodity, expirytype) -> By default returns current expiry date of Crudeoil.  
