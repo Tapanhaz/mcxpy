@@ -3,7 +3,7 @@ here only for educational purpose. **** . The uploader is not liable for any typ
 
 Installation:
 
-mcxpy installer is available on PyPI: It can be install by : 
+mcxpy installer is available on PyPI:
 
 pip install mcxpy
 
