@@ -1,4 +1,4 @@
-*** Experimental code to fetch data from mcx. *** Do not use this code to programmatically get data from mcx exchange. *** This code is uploaded here only for educational purpose. ***The uploader is not liable for any type of damage caused by or arising from the use of this code.***
+***Experimental code to fetch data from mcx.*** ***Do not use this code to programmatically get data from mcx exchange.*** ***This code is uploaded here only for educational purpose.*** ***The uploader is not liable for any type of damage caused by or arising from the use of this code.***
 
 Installation:
 
