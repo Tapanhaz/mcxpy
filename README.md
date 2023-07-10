@@ -1,6 +1,12 @@
 Experimental code to fetch data from mcx. **** Do not use this code to programmatically get data from mcx exchange. This code is uploaded
 here only for educational purpose. **** . The uploader is not liable for any type of damage caused by or arising from the use of this code.
 
+Installation:
+
+mcxpy installer is available on PyPI: It can be install by : 
+
+pip install mcxpy
+
 Functions:
 
 Below Functions will return data in pandas dataframe.. Any of the functions accepts date/expiry as %d-%m-%Y / datetime.datetime / datetime.date 
