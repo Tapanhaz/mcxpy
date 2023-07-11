@@ -3,9 +3,9 @@
 Installation:
 
 mcxpy installer is available on PyPI:
-'''
+
 pip install mcxpy
-'''
+
 Functions:
 
 Below Functions will return data in pandas dataframe.. Any of the functions accepts date/expiry as %d-%m-%Y / datetime.datetime / datetime.date 
