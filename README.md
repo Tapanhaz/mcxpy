@@ -4,7 +4,7 @@ Installation:
 
 mcxpy installer is available on PyPI:
 
-`code`pip install mcxpy`code`
+pip install mcxpy
 
 Functions:
 
