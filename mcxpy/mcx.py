@@ -2,7 +2,8 @@ import requests
 import pandas as pd
 from datetime import datetime, date, timedelta
 import re
-from typing import Literal, Union, NewType, List, Tuple
+from typing import Literal, Union, NewType, List
+from functools import lru_cache
 
 DateFormat = NewType(name="%d-%m-%Y", tp=str)
 DateFormat_2 = NewType(name="%Y%m%d", tp=str)
@@ -21,7 +22,11 @@ urls = {
         "heatmap" : "/backpage.aspx/GetHeatMap",
         "optionchain" : "/backpage.aspx/GetOptionChain",
         "pcr" : "/backpage.aspx/GetCommoditywisePutCallRatio",
-        "pcr_expirywise" : "/backpage.aspx/GetExpirywisePutCallRatio"
+        "pcr_expirywise" : "/backpage.aspx/GetExpirywisePutCallRatio",
+        "icomdex_details" : "/backpage.aspx/GetMCXIComdexIndicesDetails",
+        "icomdex_historical" : "/backpage.aspx/GetMCXIComdexIndicesHistory",
+        "getquote" : "/BackPage.aspx/GetQuote",
+        "optionquote" : "/BackPage.aspx/GetQuoteOption"
     },
 }
 
@@ -83,8 +88,31 @@ def convert_to_ist(timestamp_str: str) -> datetime:
     except Exception as e:
         print(f"Error :: {e}")
 
+@lru_cache(maxsize=None)
+def get_session(url: str) -> requests.Session:
+    s = requests.Session()
+    s.headers.update(headers)
+    res = s.get(url)
+    return s
+
+def fallback_fetch(base_url: str, url: str, data: dict=None, retry=1) -> dict:
+    try:
+        session = get_session(base_url)
+        res = session.post(url=url, json=data)
+        res.raise_for_status()
+        if res.status_code == 200:
+            res_data = res.json()
+            return res_data
+    except requests.exceptions.RequestException:
+        if retry <= 3:
+            get_session.cache_clear()
+            fallback_fetch(base_url=base_url, url=url, data=data, retry=retry+1)
+    except Exception as e:
+        print(f"Error :: {e}")
+
 def mcxfetch(config_key: Literal["bhavcopy","marketwatch","circulars","gainers","losers","activeoptions",
-                                 "activecontracts","heatmap","optionchain","pcr", "pcr_expirywise"],
+                                 "activecontracts","heatmap","optionchain","pcr", "pcr_expirywise",
+                                 "icomdex_details", "icomdex_historical", "getquote", "optionquote"],
             data: dict=None) -> dict:
     try:
         base_url = urls['base_url']
@@ -94,7 +122,10 @@ def mcxfetch(config_key: Literal["bhavcopy","marketwatch","circulars","gainers",
         if response.status_code == 200:
             res_data = response.json()
             return res_data
-    except (requests.HTTPError,Exception) as e:
+    except requests.HTTPError:
+        res = fallback_fetch(base_url=base_url, url=url, data=data)
+        return res
+    except Exception as e:
         print(f"Error :: {e}")
 
 def mcx_bhavcopy(bhavdate: Union[DateFormat, datetime, date]) -> pd.DataFrame:    
@@ -302,6 +333,7 @@ def mcx_pcr(expirywise: bool=False) -> pd.DataFrame:
     except Exception as e:
         print(f"Error :: {e}")
 
+'''
 def mcx_expiry(commodity: Literal['COPPER', 'CRUDEOIL', 'GOLD', 'GOLDM', 'NATURALGAS', 
                                   'NICKEL', 'SILVER', 'SILVERM','ZINC']='CRUDEOIL',
                 expirytype : Literal['current', 'next', 'far', 'all']='current'
@@ -323,4 +355,117 @@ def mcx_expiry(commodity: Literal['COPPER', 'CRUDEOIL', 'GOLD', 'GOLDM', 'NATURA
             print("Please input correct parameters.")
     except Exception as e:
         print(f"Error :: {e}")
+'''
+def mcx_expiry(commodity: Literal["ALUMINI", "ALUMINIUM", "COPPER", "COTTONCNDY", "CRUDEOIL", "CRUDEOILM", "GOLD", "GOLDGUINEA",
+                                    "GOLDM", "GOLDPETAL", "KAPAS", "LEAD", "LEADMINI", "MCXBULLDEX", "MCXENRGDEX", "MCXMETLDEX",
+                                    "MENTHAOIL", "NATGASMINI", "NATURALGAS", "NICKEL", "SILVER", "SILVERM", "SILVERMIC", "ZINC",
+                                    "ZINCMINI"]='CRUDEOIL',
+                instrument: Literal["option", "future"]="option",
+                expirytype: Literal['current', 'next', 'far', 'all']='current'
+                ) -> Union[datetime,List[datetime]]:
+    
+    try:
+        df = mcx_marketwatch()
+        if instrument == "option":
+            inst = "OPTFUT"
+        elif instrument == "future":
+            inst = "FUTCOM"
+        exp_list = df.query(f"Symbol in ['{commodity}'] and InstrumentName in ['{inst}']")['Expiry'].unique()
+        exp_dates = sorted([item.to_pydatetime() for item in exp_list])
+        if expirytype == "current":
+            return exp_dates[0]
+        elif expirytype == "next":
+            return exp_dates[1]
+        elif expirytype == "far":
+            return exp_dates[2]
+        elif expirytype == "all":
+            return exp_dates
+        else:
+            print("Please input correct parameters.")
+    except Exception as e:
+        print(f"Error :: {e}")
 
+def mcx_icomdexindices(datatype: Literal["today", "historical"]="today",
+                       start_date: Union[DateFormat, datetime, date]=None,
+                       end_date: Union[DateFormat, datetime, date]=None
+                       ) -> pd.DataFrame:    
+    try:
+        if datatype == "today":
+            data = {
+                "Instrument_Identifier": "0",
+                "Lang" : "en"
+                } 
+            res = mcxfetch(config_key="icomdex_details", data=data)
+        elif datatype == "historical":
+            if start_date is not None and end_date is not None:
+                stdt = format_date(dateobj=start_date)
+                enddt = format_date(dateobj=end_date)
+                data = {
+                    "Index": "0", 
+                    "StartDate": stdt, 
+                    "EndDate": enddt, 
+                    "Lang": "en"
+                    }
+                res = mcxfetch(config_key='icomdex_historical', data=data)
+            else:
+                print("Please enter start_date and end_date for historical data.")
+                return            
+        df = pd.DataFrame(res["d"]["Data"])
+        df = df.drop(columns=['__type']) 
+        return df
+    except Exception as e:
+        print(f"Error :: {e}")
+
+def mcx_quote(commodity: Literal["ALUMINI", "ALUMINIUM", "COPPER", "COTTONCNDY", "CRUDEOIL", "CRUDEOILM", "GOLD", "GOLDGUINEA",
+                                    "GOLDM", "GOLDPETAL", "KAPAS", "LEAD", "LEADMINI", "MCXBULLDEX", "MCXENRGDEX", "MCXMETLDEX",
+                                    "MENTHAOIL", "NATGASMINI", "NATURALGAS", "NICKEL", "SILVER", "SILVERM", "SILVERMIC", "ZINC",
+                                    "ZINCMINI"],
+                instrument: Literal["option", "future"], 
+                expiry: Union[DateFormat, datetime, date], 
+                optiontype: Literal["CE", "PE"]= None,
+                strikeprice: Union[str, int, float]= None,
+                outputtype: Literal["quote", "bidask"]="quote" 
+                ) -> pd.DataFrame:
+    try:
+        exp_date = format_date(dateobj=expiry, isExpiry=True)
+        if instrument == "future":
+            data = {
+                "Commodity": commodity, 
+                "Expiry": exp_date
+                }
+            res = mcxfetch(config_key="getquote", data=data)
+        elif instrument == "option":
+
+            data = {
+                "Commodity": commodity,
+                "Expiry": exp_date, 
+                "OptionType": optiontype, 
+                "StrikPrice": str(strikeprice)
+            }
+            res = mcxfetch(config_key="optionquote", data=data)
+        if outputtype == "quote":
+            df = pd.DataFrame(res['d']['Data']).drop('QuoteBid', axis=1)
+            if instrument == "future":
+                df = df.drop(columns=['__type', 'Productdesc', 'ParentName'])
+                reorderd_columns = ["Symbol", "Category", "ExpiryDate", "PreviousClose", "Open", "High", "Low", "LTP", "TotalBuyQty", 
+                                    "TotalsellQty", "Volume", "AveragePrice", "PercentChange", "AbsoluteChange","UnderlineValue", "OpenInterest", 
+                                    "ChangeInOpenInterest", "LifeTimeHigh", "LifeTimeLow", "DailyVolatility", "PriceQuoteUnit", "TradingUnit",  "VaR"]
+                df = df[reorderd_columns]
+            elif instrument == "option":
+                df = df.drop(columns=['ExtensionData', 'Productdesc', 'ParentName'])
+                reorderd_columns = ["Symbol","InstrumentName", "Category", "ExpiryDate", "PreviousClose", "Open","High", 
+                                    "Low", "LTP", "TotalBuyQty", "TotalsellQty", "Volume", "AveragePrice","PercentChange", 
+                                    "AbsoluteChange", "UnderlineValue", "OptionType", "StrikePrice", "OpenInterest", 
+                                    "ChangeInOpenInterest", "LifeTimeHigh", "LifeTimeLow", "DailyVolatility", 
+                                    "PriceQuoteUnit", "TradingUnit", "VaR"]
+                df = df[reorderd_columns]
+            df["ExpiryDate"] = pd.to_datetime(df["ExpiryDate"], format="%d-%b-%Y", dayfirst=True, errors='coerce')
+        elif outputtype == "bidask":
+            df = pd.DataFrame(res['d']['Data'][0]['QuoteBid'])
+            df.insert(0, "Symbol", commodity) 
+            if instrument == "option":
+                df = df.drop(columns=["ExtensionData"])       
+        df.insert(0, "Timestamp",convert_to_ist(res['d']['Summary']['AsOn']))
+        return df
+    except Exception as e:
+        print(f"Error :: {e}")
