@@ -104,4 +104,4 @@ outputtype)
 
     Fetch quote of the given commodity. optiontype and strikeprice needed only for option instrument.
 
-</div>
+
