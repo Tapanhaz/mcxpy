@@ -1,9 +1,0 @@
-setup.py
-mcxpy/__init__.py
-mcxpy/__init__.pyi
-mcxpy/mcx.py
-mcxpy/py.typed
-mcxpy.egg-info/PKG-INFO
-mcxpy.egg-info/SOURCES.txt
-mcxpy.egg-info/dependency_links.txt
-mcxpy.egg-info/top_level.txt
