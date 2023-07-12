@@ -99,9 +99,8 @@ mcx_expiry(commodity='NATURALGAS',instrument='future',expirytype='current')
     start_date and end_date are needed only for historical datatype. By
     defaults returns today's data
 
-12 mcx_quote(commodity,instrument, expiry, optiontype, strikeprice,
-outputtype)
+12 mcx_quote(commodity,instrument, expiry, optiontype, strikeprice,outputtype)
 
     Fetch quote of the given commodity. optiontype and strikeprice needed only for option instrument.
 
-
+</div>
