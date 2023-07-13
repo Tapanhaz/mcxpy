@@ -38,19 +38,19 @@ from mcx import *
 
 \*\*\*Below Functions names are self-explanatory.
 
-1.  mcx_marketwatch()
+3.  mcx_marketwatch()
 
-2.  mcx_topgainers()
+4.  mcx_topgainers()
 
-3.  mcx_toploosers()
+5.  mcx_toploosers()
 
-4.  mcx_mostactiveoptions()
+6.  mcx_mostactiveoptions()
 
-5.  mcx_mostactivecontracts()
+7.  mcx_mostactivecontracts()
 
-6.  mcx_heatmap()
+8.  mcx_heatmap()
 
-7.  mcx_expiry(commodity, instrument, expirytype)
+9.  mcx_expiry(commodity, instrument, expirytype)
 
     By defaults, it returns the current expiry of Crudeoil options
 
@@ -86,21 +86,21 @@ mcx_expiry(commodity='NATURALGAS',instrument='future',expirytype='current')
 
 <div class="cell markdown">
 
-1.  mcx_optionchain(commodity, expiry)
+10.  mcx_optionchain(commodity, expiry)
 
     Fetch the optionchain.
 
-2.  mcx_pcr(expirywise)
+11.  mcx_pcr(expirywise)
 
     Returns the pcr. By default expirywise is False (Returns
     commoditywise pcr)
 
-3.  mcx_icomdexindices(datatype,start_date, end_date)
+12.  mcx_icomdexindices(datatype,start_date, end_date)
 
     start_date and end_date are needed only for historical datatype. By
     defaults returns today's data
 
-12 mcx_quote(commodity,instrument, expiry, optiontype, strikeprice,outputtype)
+13. mcx_quote(commodity,instrument, expiry, optiontype, strikeprice,outputtype)
 
     Fetch quote of the given commodity. optiontype and strikeprice needed only for option instrument.
 
