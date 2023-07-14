@@ -19,7 +19,7 @@ pip install mcxpy
 <div class="cell code" execution_count="1">
 
 ``` python
-from mcx import *
+from mcxpy import *
 ```
 
 </div>
